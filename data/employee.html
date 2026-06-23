@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Карточка сотрудника</title>
+    <link rel="stylesheet" href="css/freemarker.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Карточка сотрудника</h1>
+        <p><a href="/books">← Назад к списку книг</a></p>
+
+        <h2>Имя: ${employee.name}</h2>
+        <p><strong>ID сотрудника:</strong> ${employee.id}</p>
+
+        <h3>Книги на руках сейчас (активные):</h3>
+        <#if employee.currentBooks?size gt 0>
+        <ul>
+            <#list employee.currentBooks as book>
+                <li>
+                    <a href="/book?id=${book.id}">${book.title}</a> (автор: ${book.author})
+                </li>
+            </#list>
+        </ul>
+        <#else>
+        <p>На данный момент у сотрудника нет взятых книг.</p>
+        </#if>
+        <h3>История прочитанных книг (прошлые):</h3>
+        <#if employee.pastBooks?size gt 0>
+        <ul>
+            <#list employee.pastBooks as book>
+            <li>
+                <a href="/book?id=${book.id}">${book.title}</a> (автор: ${book.author})
+            </li>
+        </#list>
+        </ul>
+        <#else>
+            <p>История пуста.</p>
+        </#if>
+    </div>
+</body>
+</html>

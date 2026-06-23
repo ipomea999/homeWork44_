@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "title": "Преступление и наказание",
+    "author": "Ф. Достоевский",
+    "image": "Dostoev.jpg",
+    "description": "Студент убил старуху, потом раскаялся.",
+    "isBorrowed": true,
+    "currentHolderId": 1
+  },
+  {
+    "id": 2,
+    "title": "Гарри Поттер",
+    "author": "Дж. Роулинг",
+    "image": "Royling.jpg",
+    "description": "Мальчик со шрамом победил безносого.",
+    "isBorrowed": false,
+    "currentHolderId": null
+  }
+]

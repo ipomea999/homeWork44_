@@ -8,13 +8,13 @@ public class MockData {
     private static final List<Employee> employees = new ArrayList<>();
 
     static {
-        Employee emp1 = new Employee(1, "Иван Иванов");
-        Employee emp2 = new Employee(2, "Анна Петрова");
+        Employee emp1 = new Employee(1, "Иван Иванов", "ivan@mail.com", "123");
+        Employee emp2 = new Employee(2, "Анна Петрова", "anna@mail.com", "456");
         employees.add(emp1);
         employees.add(emp2);
 
         Book b1 = new Book(1, "Преступление и наказание", "Ф. Достоевский", "1.jpg", "Студент убил старуху, потом раскаялся.");
-        Book b2 = new Book(2, "Гарри Поттеры", "Дж. Роулинг", "1.jpg", "Мальчик со шрамом победил безносого.");
+        Book b2 = new Book(2, "Гарри Поттер", "Дж. Роулинг", "1.jpg", "Мальчик со шрамом победил безносого.");
         Book b3 = new Book(3, "Ромео и Джульетта", "У. Шекспир", "1.jpg", "Подростки влюбились, повраждовали и умерли.");
 
         b1.setBorrowed(true);

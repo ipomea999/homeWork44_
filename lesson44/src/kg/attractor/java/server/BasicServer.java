@@ -13,7 +13,6 @@ import java.util.Map;
 public abstract class BasicServer {
 
     private final HttpServer server;
-    // путь к каталогу с файлами, которые будет отдавать сервер по запросам клиентов
     private final String dataDir = "data";
     private Map<String, RouteHandler> routes = new HashMap<>();
 
@@ -24,6 +23,20 @@ public abstract class BasicServer {
 
     private static String makeKey(String method, String route) {
         return String.format("%s %s", method.toUpperCase(), route);
+    }
+
+    protected final void registerPost(String route, RouteHandler handler) {
+        getRoutes().put("POST " + route, handler);
+    }
+
+    protected final void redirect(HttpExchange exchange, String location) {
+        try {
+            exchange.getResponseHeaders().set("Location", location);
+            exchange.sendResponseHeaders(303, -1);
+            exchange.getResponseBody().close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static String makeKey(HttpExchange exchange) {

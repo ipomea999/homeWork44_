@@ -8,16 +8,29 @@ public class Employee {
     private String name;
     private String email;
     private String password;
-    private List<Book> currentBooks;
-    private List<Book> pastBooks;
+
+    private transient List<Book> currentBooks = new ArrayList<>();
+    private transient List<Book> pastBooks = new ArrayList<>();
 
     public Employee(int id, String name, String email, String password) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.password = password;
-        this.currentBooks = new ArrayList<>();
-        this.pastBooks = new ArrayList<>();
+        initBooks();
+    }
+
+    public void initBooks() {
+        if (this.currentBooks == null) {
+            this.currentBooks = new ArrayList<>();
+        } else {
+            this.currentBooks.clear();
+        }
+        if (this.pastBooks == null) {
+            this.pastBooks = new ArrayList<>();
+        } else {
+            this.pastBooks.clear();
+        }
     }
 
     public int getId() { return id; }

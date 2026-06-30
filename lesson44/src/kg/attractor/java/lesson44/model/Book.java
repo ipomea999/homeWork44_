@@ -6,8 +6,8 @@ public class Book {
     private String author;
     private String image;
     private String description;
-    private boolean isBorrowed;
-    private Employee currentHolder;
+    private transient boolean isBorrowed;
+    private transient Employee currentHolder;
 
     public Book(int id, String title, String author, String image, String description) {
         this.id = id;

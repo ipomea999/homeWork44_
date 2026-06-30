@@ -17,10 +17,11 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class Lesson44Server extends BasicServer {
     private final static Configuration freemarker = initFreeMarker();
-    private static Employee authorizedEmployee = null;
+    private static final Map<String, Integer> sessions = new HashMap<>();
 
     public Lesson44Server(String host, int port) throws IOException {
         super(host, port);
@@ -33,6 +34,9 @@ public class Lesson44Server extends BasicServer {
         registerGet("/login", this::loginGetHandler);
         registerPost("/login", this::loginPostHandler);
         registerGet("/profile", this::profileGetHandler);
+        registerGet("/logout", this::logoutHandler);
+        registerPost("/books/borrow", this::borrowBookHandler);
+        registerPost("/books/return", this::returnBookHandler);
     }
 
     private static Configuration initFreeMarker() {
@@ -82,7 +86,36 @@ public class Lesson44Server extends BasicServer {
         return null;
     }
 
+    private String getSessionId(HttpExchange exchange) {
+        var headers = exchange.getRequestHeaders();
+        var cookieHeader = headers.getFirst("Cookie");
+        if (cookieHeader != null) {
+            String[] cookies = cookieHeader.split(";");
+            for (String cookie : cookies) {
+                String[] pair = cookie.trim().split("=");
+                if (pair.length == 2 && pair[0].equals("sessionId")) {
+                    return pair[1];
+                }
+            }
+        }
+        return null;
+    }
+
+    private Employee getAuthorizedEmployee(HttpExchange exchange) {
+        String sessionId = getSessionId(exchange);
+        if (sessionId != null && sessions.containsKey(sessionId)) {
+            return MockData.getEmployeeById(sessions.get(sessionId));
+        }
+        return null;
+    }
+
     private void employeeHandler(HttpExchange exchange) {
+        Employee user = getAuthorizedEmployee(exchange);
+        if (user == null) {
+            sendRedirect(exchange, "/login");
+            return;
+        }
+
         Integer id = getPathId(exchange);
         Employee employee = null;
 
@@ -100,12 +133,15 @@ public class Lesson44Server extends BasicServer {
     }
 
     private void booksHandler(HttpExchange exchange) {
+        Employee user = getAuthorizedEmployee(exchange);
         Map<String, Object> data = new HashMap<>();
         data.put("books", MockData.getBooks());
+        data.put("user", user);
         renderTemplate(exchange, "books.html", data);
     }
 
     private void bookHandler(HttpExchange exchange) {
+        Employee user = getAuthorizedEmployee(exchange);
         Integer id = getPathId(exchange);
         Book book = null;
 
@@ -119,6 +155,19 @@ public class Lesson44Server extends BasicServer {
 
         Map<String, Object> data = new HashMap<>();
         data.put("book", book);
+        data.put("user", user);
+
+        boolean canBorrow = false;
+        boolean canReturn = false;
+
+        if (user != null && book != null) {
+            canBorrow = !book.isBorrowed() && user.getCurrentBooks().size() < 2;
+            canReturn = book.isBorrowed() && book.getCurrentHolder() != null && book.getCurrentHolder().getId() == user.getId();
+        }
+
+        data.put("canBorrow", canBorrow);
+        data.put("canReturn", canReturn);
+
         renderTemplate(exchange, "book.html", data);
     }
 
@@ -178,7 +227,9 @@ public class Lesson44Server extends BasicServer {
                 if (emp.getEmail() != null && emp.getEmail().equalsIgnoreCase(email.trim())
                         && emp.getPassword() != null && emp.getPassword().equals(password)) {
 
-                    authorizedEmployee = emp;
+                    String sessionId = UUID.randomUUID().toString();
+                    sessions.put(sessionId, emp.getId());
+                    exchange.getResponseHeaders().add("Set-Cookie", "sessionId=" + sessionId + "; Max-Age=600; HttpOnly; Path=/");
                     sendRedirect(exchange, "/profile");
                     return;
                 }
@@ -191,14 +242,73 @@ public class Lesson44Server extends BasicServer {
     }
 
     private void profileGetHandler(HttpExchange exchange) {
-        Map<String, Object> data = new HashMap<>();
-        if (authorizedEmployee != null) {
-            data.put("employee", authorizedEmployee);
-        } else {
-            Employee dummyEmployee = new Employee(0, "Некий пользователь", "unknown@mail.com", "12345");
-            data.put("employee", dummyEmployee);
+        Employee user = getAuthorizedEmployee(exchange);
+        if (user == null) {
+            sendRedirect(exchange, "/login");
+            return;
         }
+        Map<String, Object> data = new HashMap<>();
+        data.put("employee", user);
         renderTemplate(exchange, "profile.html", data);
+    }
+
+    private void logoutHandler(HttpExchange exchange) {
+        String sessionId = getSessionId(exchange);
+        if (sessionId != null) {
+            sessions.remove(sessionId);
+        }
+        exchange.getResponseHeaders().add("Set-Cookie", "sessionId=; Max-Age=0; HttpOnly; Path=/");
+        sendRedirect(exchange, "/login");
+    }
+
+    private void borrowBookHandler(HttpExchange exchange) {
+        Employee user = getAuthorizedEmployee(exchange);
+        if (user == null) {
+            sendRedirect(exchange, "/login");
+            return;
+        }
+
+        Map<String, String> body = parsePostBody(exchange);
+        String bookIdStr = body.get("bookId");
+        if (bookIdStr != null) {
+            try {
+                int bookId = Integer.parseInt(bookIdStr);
+                Book book = MockData.getBookById(bookId);
+                if (book != null && !book.isBorrowed() && user.getCurrentBooks().size() < 2) {
+                    MockData.borrowBook(user.getId(), bookId);
+                }
+                sendRedirect(exchange, "/book/" + bookId);
+                return;
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        sendRedirect(exchange, "/books");
+    }
+
+    private void returnBookHandler(HttpExchange exchange) {
+        Employee user = getAuthorizedEmployee(exchange);
+        if (user == null) {
+            sendRedirect(exchange, "/login");
+            return;
+        }
+
+        Map<String, String> body = parsePostBody(exchange);
+        String bookIdStr = body.get("bookId");
+        if (bookIdStr != null) {
+            try {
+                int bookId = Integer.parseInt(bookIdStr);
+                Book book = MockData.getBookById(bookId);
+                if (book != null && book.isBorrowed() && book.getCurrentHolder() != null && book.getCurrentHolder().getId() == user.getId()) {
+                    MockData.returnBook(user.getId(), bookId);
+                }
+                sendRedirect(exchange, "/book/" + bookId);
+                return;
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        sendRedirect(exchange, "/books");
     }
 
     private Map<String, String> parsePostBody(HttpExchange exchange) {

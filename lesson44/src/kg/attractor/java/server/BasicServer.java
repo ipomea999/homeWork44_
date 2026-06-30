@@ -61,24 +61,14 @@ public abstract class BasicServer {
     }
 
     private void registerCommonHandlers() {
-        // самый основной обработчик, который будет определять
-        // какие обработчики вызывать в дальнейшем
         server.createContext("/", this::handleIncomingServerRequests);
 
-        // специфичные обработчики, которые выполняют свои действия
-        // в зависимости от типа запроса
+        registerGet("/", exchange -> sendFile(exchange, makeFilePath("login.html"), ContentType.TEXT_HTML));
 
-        // обработчик для корневого запроса
-        // именно этот обработчик отвечает что отображать,
-        // когда пользователь запрашивает localhost:9889
-        registerGet("/", exchange -> sendFile(exchange, makeFilePath("index.html"), ContentType.TEXT_HTML));
-
-        // эти обрабатывают запросы с указанными расширениями
         registerFileHandler(".css", ContentType.TEXT_CSS);
         registerFileHandler(".html", ContentType.TEXT_HTML);
         registerFileHandler(".jpg", ContentType.IMAGE_JPEG);
         registerFileHandler(".png", ContentType.IMAGE_PNG);
-
     }
 
     protected final void registerGet(String route, RouteHandler handler) {
@@ -107,7 +97,11 @@ public abstract class BasicServer {
     }
 
     private Path makeFilePath(HttpExchange exchange) {
-        return makeFilePath(exchange.getRequestURI().getPath());
+        String path = exchange.getRequestURI().getPath();
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        return makeFilePath(path);
     }
 
     protected Path makeFilePath(String... s) {
@@ -134,7 +128,21 @@ public abstract class BasicServer {
     }
 
     private void handleIncomingServerRequests(HttpExchange exchange) {
-        var route = getRoutes().getOrDefault(makeKey(exchange), this::respond404);
+        String key = makeKey(exchange);
+        RouteHandler route = getRoutes().get(key);
+        if (route == null) {
+            for (Map.Entry<String, RouteHandler> entry : getRoutes().entrySet()) {
+                String registeredKey = entry.getKey();
+                if (key.startsWith(registeredKey + "/")) {
+                    route = entry.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (route == null) {
+            route = this::respond404;
+        }
         route.handle(exchange);
     }
 

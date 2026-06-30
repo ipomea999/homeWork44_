@@ -2,7 +2,19 @@
   {
     "id": 1,
     "name": "Иван Иванов",
-    "currentBooks": [1],
-    "pastBooks": [2]
+    "email": "ivan@test.mail",
+    "password": "123"
+  },
+  {
+    "id": 2,
+    "name": "Анна Петрова",
+    "email": "anna@test.mail",
+    "password": "456"
+  },
+  {
+    "id": 3,
+    "name": "ipomea",
+    "email": "ipomea02@gmail.com",
+    "password": "е5н6г7"
   }
 ]

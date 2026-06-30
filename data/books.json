@@ -4,17 +4,20 @@
     "title": "Преступление и наказание",
     "author": "Ф. Достоевский",
     "image": "Dostoev.jpg",
-    "description": "Студент убил старуху, потом раскаялся.",
-    "isBorrowed": true,
-    "currentHolderId": 1
+    "description": "Студент убил старуху, потом раскаялся."
   },
   {
     "id": 2,
     "title": "Гарри Поттер",
     "author": "Дж. Роулинг",
     "image": "Royling.jpg",
-    "description": "Мальчик со шрамом победил безносого.",
-    "isBorrowed": false,
-    "currentHolderId": null
+    "description": "Мальчик со шрамом победил безносого."
+  },
+  {
+    "id": 3,
+    "title": "Ромео и Джульетта",
+    "author": "У. Шекспир",
+    "image": "1.jpg",
+    "description": "Подростки влюбились, повраждовали и умерли."
   }
 ]

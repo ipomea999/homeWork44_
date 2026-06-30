@@ -97,4 +97,23 @@ public class MockData {
         employees.add(newEmp);
         FileUtil.writeEmployees(employees);
     }
+
+    public static void borrowBook(int employeeId, int bookId) {
+        List<BorrowRecord> history = FileUtil.readHistory();
+        history.add(new BorrowRecord(employeeId, bookId, false));
+        FileUtil.writeHistory(history);
+        loadData();
+    }
+
+    public static void returnBook(int employeeId, int bookId) {
+        List<BorrowRecord> history = FileUtil.readHistory();
+        for (BorrowRecord record : history) {
+            if (record.getEmployeeId() == employeeId && record.getBookId() == bookId && !record.isReturned()) {
+                record.setReturned(true);
+                break;
+            }
+        }
+        FileUtil.writeHistory(history);
+        loadData();
+    }
 }

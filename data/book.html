@@ -28,7 +28,29 @@
             <span style="color: green; font-weight: bold;">Доступна в библиотеке</span>
         </#if>
         </p>
+
+        <#if user??>
+        <div style="margin-top: 20px;">
+            <#if canBorrow>
+            <form action="/books/borrow" method="post">
+                <input type="hidden" name="bookId" value="${book.id}">
+                <button type="submit" style="padding: 10px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer;">Взять книгу</button>
+            </form>
+            <#elseif canReturn>
+            <form action="/books/return" method="post">
+                <input type="hidden" name="bookId" value="${book.id}">
+                <button type="submit" style="padding: 10px 15px; background-color: #f44336; color: white; border: none; border-radius: 3px; cursor: pointer;">Вернуть книгу</button>
+            </form>
+            <#elseif book.borrowed>
+            <p style="color: #666; font-style: italic;">Эта книга сейчас у другого сотрудника.</p>
+            <#else>
+            <p style="color: #f44336; font-weight: bold;">Вы не можете взять больше двух книг одновременно!</p>
+        </#if>
     </div>
+    <#else>
+    <p style="margin-top: 20px;"><a href="/login">Войдите в систему</a>, чтобы взять или вернуть эту книгу.</p>
+</#if>
+</div>
 </div>
 </div>
 </body>

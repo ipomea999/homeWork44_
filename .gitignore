@@ -4,4 +4,7 @@ out/
 !**/src/test/**/out/
 lesson44.iml
 AttractorHttpServer.iml
+.idea
+*.iws
 *.iml
+*.ipr
